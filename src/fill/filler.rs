@@ -3,7 +3,7 @@ An algorithm that composes algorithms and data structures throughout this
 crate. This is where the magic happens.
 */
 
-use std::{collections::HashSet, hash::BuildHasherDefault, time::Instant};
+use std::{collections::HashSet, hash::BuildHasherDefault};
 
 use rustc_hash::FxHasher;
 
@@ -38,8 +38,6 @@ impl<'s> Filler<'s> {
 
 impl<'s> Fill for Filler<'s> {
     fn fill(&mut self, initial_crossword: &Crossword) -> Result<Crossword, String> {
-        let thread_start = Instant::now();
-        let mut candidate_count = 0;
 
         let word_boundaries = parse_word_boundaries(&initial_crossword);
         let mut already_used = HashSet::with_capacity_and_hasher(
@@ -52,15 +50,6 @@ impl<'s> Fill for Filler<'s> {
         let word_boundary_lookup = build_square_word_boundary_lookup(&word_boundaries);
 
         while let Some(candidate) = candidates.pop() {
-            candidate_count += 1;
-
-            if candidate_count % 10_000 == 0 {
-                println!("{}", candidate);
-                println!(
-                    "Throughput: {}",
-                    candidate_count as f32 / thread_start.elapsed().as_millis() as f32
-                );
-            }
 
             let to_fill = word_boundaries
                 .iter()
