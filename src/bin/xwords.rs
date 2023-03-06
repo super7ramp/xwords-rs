@@ -63,7 +63,8 @@ fn main() -> Result<(), String> {
     }
 
     let trie = Trie::load_default().expect("Failed to load trie");
-    let output = Filler::new(&trie).fill(&input);
+    let mut never_interrupt = || false;
+    let output = Filler::new(&trie, &mut never_interrupt).fill(&input);
 
     match output {
         Ok(output) => {

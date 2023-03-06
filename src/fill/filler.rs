@@ -19,18 +19,22 @@ use super::{
     fill_one_word, is_viable_reuse, words_orthogonal_to_word, Fill,
 };
 
+pub type InterruptCheck<'s> = dyn FnMut() -> bool + 's;
+
 pub struct Filler<'s> {
     word_cache: CachedWords,
     is_viable_cache: CachedIsViable,
+    is_interrupted: &'s mut InterruptCheck<'s>,
 
     trie: &'s Trie,
 }
 
 impl<'s> Filler<'s> {
-    pub fn new(trie: &'s Trie) -> Filler<'s> {
+    pub fn new(trie: &'s Trie, is_interrupted: &'s mut InterruptCheck<'s>) -> Filler<'s> {
         Filler {
             word_cache: CachedWords::default(),
             is_viable_cache: CachedIsViable::default(),
+            is_interrupted,
             trie,
         }
     }
@@ -50,6 +54,10 @@ impl<'s> Fill for Filler<'s> {
         let word_boundary_lookup = build_square_word_boundary_lookup(&word_boundaries);
 
         while let Some(candidate) = candidates.pop() {
+
+            if (self.is_interrupted)() {
+                break;
+            }
 
             let to_fill = word_boundaries
                 .iter()
@@ -88,6 +96,7 @@ impl<'s> Fill for Filler<'s> {
                     }
                     candidates.push(new_candidate);
                 }
+
             }
         }
 
@@ -128,7 +137,8 @@ mod tests {
 
         let now = Instant::now();
         let trie = Trie::load_default().expect("Failed to load trie");
-        let mut filler = Filler::new(&trie);
+        let mut never_interrupt = || false;
+        let mut filler = Filler::new(&trie, &mut never_interrupt);
         let filled_puz = filler.fill(&grid).unwrap();
         println!("Filled in {} seconds.", now.elapsed().as_secs());
         println!("{}", filled_puz);
