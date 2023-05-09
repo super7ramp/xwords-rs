@@ -3,13 +3,16 @@ A data structure that provides efficient lookup of partially filled words.
 */
 
 use crate::File;
-use rustc_hash::FxHashMap;
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use std::fmt;
+use std::hash::BuildHasherDefault;
+use rustc_hash::FxHasher;
+type FxIndexMap<K, V> = IndexMap<K, V, BuildHasherDefault<FxHasher>>;
 #[derive(Clone, Serialize, Deserialize)]
 pub struct TrieNode {
     contents: Option<char>,
-    children: FxHashMap<char, TrieNode>,
+    children: FxIndexMap<char, TrieNode>,
     is_terminal: bool,
 }
 
@@ -24,7 +27,7 @@ impl TrieNode {
                     }
                     None => {
                         let tmp = TrieNode {
-                            children: FxHashMap::default(),
+                            children: FxIndexMap::default(),
                             contents: Some(*val as char),
                             is_terminal: false,
                         };
@@ -159,7 +162,7 @@ impl Trie {
     pub fn build(words: Vec<String>) -> Trie {
         let mut root = TrieNode {
             contents: None,
-            children: FxHashMap::default(),
+            children: FxIndexMap::default(),
             is_terminal: false,
         };
 
@@ -186,7 +189,7 @@ impl Trie {
 mod tests {
 
     use crate::File;
-    use rustc_hash::FxHashMap;
+    use crate::trie::FxIndexMap;
 
     use std::collections::HashSet;
 
@@ -214,7 +217,7 @@ mod tests {
     fn display_works() {
         let mut root = TrieNode {
             contents: None,
-            children: FxHashMap::default(),
+            children: FxIndexMap::default(),
             is_terminal: false,
         };
 
@@ -222,14 +225,14 @@ mod tests {
             'b',
             TrieNode {
                 contents: Some('b'),
-                children: FxHashMap::default(),
+                children: FxIndexMap::default(),
                 is_terminal: false,
             },
         );
 
         let mut c = TrieNode {
             contents: Some('c'),
-            children: FxHashMap::default(),
+            children: FxIndexMap::default(),
             is_terminal: false,
         };
 
@@ -237,7 +240,7 @@ mod tests {
             'd',
             TrieNode {
                 contents: Some('d'),
-                children: FxHashMap::default(),
+                children: FxIndexMap::default(),
                 is_terminal: false,
             },
         );
@@ -251,7 +254,7 @@ mod tests {
     fn add_sequence_works() {
         let root = TrieNode {
             contents: Some('a'),
-            children: FxHashMap::default(),
+            children: FxIndexMap::default(),
             is_terminal: false,
         };
 
